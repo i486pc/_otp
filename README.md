@@ -1,6 +1,4 @@
 # OTP Project
-=======
-# _otp
 
 Multi-channel OTP (One-Time Password) authentication system built with React and Express.js.
 
@@ -12,8 +10,7 @@ Multi-channel OTP (One-Time Password) authentication system built with React and
 - Express.js backend API
 
 ## Quick Start
-1. Clone the repository
-=======
+
 1. Clone the repository:
 ```bash
 git clone https://github.com/i486pc/_otp.git
@@ -46,5 +43,5 @@ project/
 ## License
 
 MIT
-=======
+
 MIT
