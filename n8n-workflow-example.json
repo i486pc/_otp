@@ -1,0 +1,374 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whatsapp-webhook",
+        "options": {}
+      },
+      "name": "WhatsApp Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json[\"type\"]}}",
+              "operation": "equal",
+              "value2": "signup"
+            }
+          ]
+        }
+      },
+      "name": "Is Signup?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        450,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.OTP_API_URL}}/api/webhook/n8n",
+        "options": {},
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "action",
+              "value": "initiate_verification"
+            },
+            {
+              "name": "userId",
+              "value": "={{$json[\"userId\"]}}"
+            },
+            {
+              "name": "channel",
+              "value": "whatsapp"
+            },
+            {
+              "name": "phoneNumber",
+              "value": "={{$json[\"phoneNumber\"]}}"
+            },
+            {
+              "name": "email",
+              "value": "={{$json[\"email\"]}}"
+            }
+          ]
+        }
+      },
+      "name": "Generate WhatsApp OTP",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        650,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.whatsapp.com/send",
+        "options": {},
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "message",
+              "value": "Your verification code is: {{$node[\"Generate WhatsApp OTP\"].json[\"otp\"]}}. This code will expire in 10 minutes."
+            },
+            {
+              "name": "phoneNumber",
+              "value": "={{$json[\"phoneNumber\"]}}"
+            }
+          ]
+        }
+      },
+      "name": "Send WhatsApp Message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        850,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.OTP_API_URL}}/api/webhook/n8n",
+        "options": {},
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "action",
+              "value": "initiate_verification"
+            },
+            {
+              "name": "userId",
+              "value": "={{$json[\"userId\"]}}"
+            },
+            {
+              "name": "channel",
+              "value": "email"
+            },
+            {
+              "name": "phoneNumber",
+              "value": "={{$json[\"phoneNumber\"]}}"
+            },
+            {
+              "name": "email",
+              "value": "={{$json[\"email\"]}}"
+            }
+          ]
+        }
+      },
+      "name": "Generate Email OTP",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        650,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "noreply@yourdomain.com",
+        "toEmail": "={{$json[\"email\"]}}",
+        "subject": "Your Verification Code",
+        "text": "Your verification code is: {{$node[\"Generate Email OTP\"].json[\"otp\"]}}. This code will expire in 10 minutes."
+      },
+      "name": "Send Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [
+        850,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json[\"type\"]}}",
+              "operation": "equal",
+              "value2": "verify_otp"
+            }
+          ]
+        }
+      },
+      "name": "Is OTP Verification?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        450,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.OTP_API_URL}}/api/verify-otp",
+        "options": {},
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "userId",
+              "value": "={{$json[\"userId\"]}}"
+            },
+            {
+              "name": "otp",
+              "value": "={{$json[\"otp\"]}}"
+            },
+            {
+              "name": "channel",
+              "value": "={{$json[\"channel\"]}}"
+            }
+          ]
+        }
+      },
+      "name": "Verify OTP",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        650,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json[\"success\"]}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Is Verified?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        850,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.whatsapp.com/send",
+        "options": {},
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "message",
+              "value": "Verification successful! {{$json[\"fullyVerified\"] ? \"Your account is now fully verified.\" : \"Please complete verification for all channels.\"}}"
+            },
+            {
+              "name": "phoneNumber",
+              "value": "={{$json[\"phoneNumber\"]}}"
+            }
+          ]
+        }
+      },
+      "name": "Send Success Message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        1050,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.whatsapp.com/send",
+        "options": {},
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "message",
+              "value": "Verification failed. Please try again with a valid OTP."
+            },
+            {
+              "name": "phoneNumber",
+              "value": "={{$json[\"phoneNumber\"]}}"
+            }
+          ]
+        }
+      },
+      "name": "Send Failure Message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        1050,
+        700
+      ]
+    }
+  ],
+  "connections": {
+    "WhatsApp Webhook": {
+      "main": [
+        [
+          {
+            "node": "Is Signup?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Is OTP Verification?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Signup?": {
+      "true": [
+        [
+          {
+            "node": "Generate WhatsApp OTP",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Generate Email OTP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate WhatsApp OTP": {
+      "main": [
+        [
+          {
+            "node": "Send WhatsApp Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Email OTP": {
+      "main": [
+        [
+          {
+            "node": "Send Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is OTP Verification?": {
+      "true": [
+        [
+          {
+            "node": "Verify OTP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify OTP": {
+      "main": [
+        [
+          {
+            "node": "Is Verified?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Verified?": {
+      "true": [
+        [
+          {
+            "node": "Send Success Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ],
+      "false": [
+        [
+          {
+            "node": "Send Failure Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

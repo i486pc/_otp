@@ -1,0 +1,486 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "auth-webhook",
+        "options": {}
+      },
+      "name": "Authentication Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json[\"type\"]}}",
+              "operation": "equal",
+              "value2": "initiate_verification"
+            }
+          ]
+        }
+      },
+      "name": "Is Initiate Verification?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        450,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.OTP_API_URL}}/api/webhook/n8n",
+        "options": {},
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "action",
+              "value": "initiate_verification"
+            },
+            {
+              "name": "userId",
+              "value": "={{$json[\"userId\"]}}"
+            },
+            {
+              "name": "channel",
+              "value": "={{$json[\"channel\"]}}"
+            },
+            {
+              "name": "phoneNumber",
+              "value": "={{$json[\"phoneNumber\"]}}"
+            },
+            {
+              "name": "email",
+              "value": "={{$json[\"email\"]}}"
+            }
+          ]
+        }
+      },
+      "name": "Generate OTP",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        650,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json[\"channel\"]}}",
+              "operation": "equal",
+              "value2": "sms"
+            }
+          ]
+        }
+      },
+      "name": "Is SMS Channel?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        850,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json[\"channel\"]}}",
+              "operation": "equal",
+              "value2": "email"
+            }
+          ]
+        }
+      },
+      "name": "Is Email Channel?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        850,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json[\"channel\"]}}",
+              "operation": "equal",
+              "value2": "voice"
+            }
+          ]
+        }
+      },
+      "name": "Is Voice Channel?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        850,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json[\"type\"]}}",
+              "operation": "equal",
+              "value2": "verify_otp"
+            }
+          ]
+        }
+      },
+      "name": "Is Verify OTP?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        450,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.OTP_API_URL}}/api/verify-otp",
+        "options": {},
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "userId",
+              "value": "={{$json[\"userId\"]}}"
+            },
+            {
+              "name": "otp",
+              "value": "={{$json[\"otp\"]}}"
+            },
+            {
+              "name": "channel",
+              "value": "={{$json[\"channel\"]}}"
+            }
+          ]
+        }
+      },
+      "name": "Verify OTP",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        650,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json[\"success\"]}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Is Verified?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        850,
+        800
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"message\": \"Verification successful!\",\n  \"fullyVerified\": {{$json[\"fullyVerified\"]}},\n  \"verifiedChannels\": {{$json[\"verifiedChannels\"]}},\n  \"token\": \"{{$json[\"token\"]}}\"\n}",
+        "options": {}
+      },
+      "name": "Success Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1050,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": false,\n  \"message\": \"Verification failed\",\n  \"error\": \"{{$json[\"error\"]}}\"\n}",
+        "options": {}
+      },
+      "name": "Failure Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1050,
+        900
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"message\": \"OTP generated and sent successfully\",\n  \"channel\": \"{{$json[\"channel\"]}}\"\n}",
+        "options": {}
+      },
+      "name": "OTP Generated Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1250,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "genericCredentialType",
+        "genericAuthType": "clickSendApi",
+        "resource": "sms",
+        "operation": "send",
+        "from": "={{$env.SMS_FROM_NUMBER || \"OTPSystem\"}}",
+        "to": "={{$json[\"phoneNumber\"]}}",
+        "content": "=Your verification code is: {{$node[\"Generate OTP\"].json[\"otp\"]}}. This code will expire in 10 minutes."
+      },
+      "name": "ClickSend SMS",
+      "type": "n8n-nodes-base.clickSend",
+      "typeVersion": 1,
+      "position": [
+        1050,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{$env.EMAIL_FROM}}",
+        "toEmail": "={{$json[\"email\"]}}",
+        "subject": "Your Verification Code",
+        "text": "=Your verification code is: {{$node[\"Generate OTP\"].json[\"otp\"]}}. This code will expire in 10 minutes.",
+        "html": "=<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;\">\n  <h2 style=\"color: #4f46e5;\">Your Verification Code</h2>\n  <p>Please use the following code to complete your verification:</p>\n  <div style=\"background-color: #f3f4f6; padding: 15px; border-radius: 5px; text-align: center; font-size: 24px; letter-spacing: 5px; font-weight: bold;\">\n    {{$node[\"Generate OTP\"].json[\"otp\"]}}\n  </div>\n  <p style=\"margin-top: 20px; color: #6b7280;\">This code will expire in 10 minutes.</p>\n  <p style=\"color: #6b7280; font-size: 12px; margin-top: 30px;\">If you didn't request this code, please ignore this email.</p>\n</div>"
+      },
+      "name": "Send Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [
+        1050,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.vapi.ai/call",
+        "options": {
+          "response": {
+            "fullResponse": true
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$env.VAPI_API_KEY}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "recipient",
+              "value": "={ \"phone_number\": \"{{$json[\"phoneNumber\"]}}\" }"
+            },
+            {
+              "name": "assistant_id",
+              "value": "={{$env.VAPI_ASSISTANT_ID}}"
+            },
+            {
+              "name": "first_message",
+              "value": "=Your verification code is: {{$node[\"Generate OTP\"].json[\"otp\"].split(\"\").join(\" \")}}. I repeat, your verification code is: {{$node[\"Generate OTP\"].json[\"otp\"].split(\"\").join(\" \")}}. This code will expire in 10 minutes."
+            }
+          ]
+        }
+      },
+      "name": "Vapi Voice Call",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        1050,
+        500
+      ]
+    }
+  ],
+  "connections": {
+    "Authentication Webhook": {
+      "main": [
+        [
+          {
+            "node": "Is Initiate Verification?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Is Verify OTP?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Initiate Verification?": {
+      "true": [
+        [
+          {
+            "node": "Generate OTP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate OTP": {
+      "main": [
+        [
+          {
+            "node": "Is SMS Channel?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Is Email Channel?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Is Voice Channel?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is SMS Channel?": {
+      "true": [
+        [
+          {
+            "node": "ClickSend SMS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Email Channel?": {
+      "true": [
+        [
+          {
+            "node": "Send Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Voice Channel?": {
+      "true": [
+        [
+          {
+            "node": "Vapi Voice Call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Verify OTP?": {
+      "true": [
+        [
+          {
+            "node": "Verify OTP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify OTP": {
+      "main": [
+        [
+          {
+            "node": "Is Verified?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Verified?": {
+      "true": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ],
+      "false": [
+        [
+          {
+            "node": "Failure Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ClickSend SMS": {
+      "main": [
+        [
+          {
+            "node": "OTP Generated Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email": {
+      "main": [
+        [
+          {
+            "node": "OTP Generated Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vapi Voice Call": {
+      "main": [
+        [
+          {
+            "node": "OTP Generated Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
