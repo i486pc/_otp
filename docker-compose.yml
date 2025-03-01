@@ -79,7 +79,7 @@ services:
 
   otp-api:
     build:
-      context: .
+      context: https://seu-usuario:${GITHUB_TOKEN}@github.com/seu-usuario/seu-repositorio-privado.git
       dockerfile: Dockerfile
     environment:
       - NODE_ENV=production
@@ -117,7 +117,7 @@ services:
 
   otp-worker:
     build:
-      context: .
+      context: https://seu-usuario:${GITHUB_TOKEN}@github.com/seu-usuario/seu-repositorio-privado.git
       dockerfile: Dockerfile.worker
     environment:
       - NODE_ENV=production
