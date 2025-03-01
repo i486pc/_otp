@@ -15,7 +15,6 @@ Multi-channel OTP (One-Time Password) authentication system built with React and
 ```bash
 git clone https://github.com/i486pc/_otp.git
 ```
->>>>>>> origin/main
 2. Install dependencies:
 ```bash
 npm install
@@ -41,7 +40,5 @@ project/
 ```
 
 ## License
-
-MIT
 
 MIT
